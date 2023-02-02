@@ -1,3 +1,3 @@
 ## Networking Basics
 ### Conepts 
--- OSI Model
+--OSI Model
