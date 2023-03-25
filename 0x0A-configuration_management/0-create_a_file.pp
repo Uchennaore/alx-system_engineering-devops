@@ -1,7 +1,7 @@
-# create file in /tmp
-file { '/tmp/holberton':
+# Creates a file
+file { '/tmp/school':
+  mode    => '0744',
   owner   => 'www-data',
   group   => 'www-data',
-  mode    => '0744',
   content => 'I love Puppet'
-  }
+}
