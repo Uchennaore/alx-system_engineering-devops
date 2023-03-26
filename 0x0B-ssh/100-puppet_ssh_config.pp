@@ -1,11 +1,13 @@
-#!/usr/bin/env bash
-# connect with puppet
-file_line { 'Declare_identity_file':
-  path    => '/etc/ssh/ssh_config',
-  line    => 'IdentityFile ~/.ssh/school,
+# Client configuration
+exec { 'Turn off passwd auth':
+  command => 'bash -c "echo PasswordAuthentication no >> /etc/ssh/ssh_config"',
+  path    => '/usr/bin:/usr/sbin:/bin'
 }
-
-file_line { 'Turn_off_passwd_auth':
-  path    => '/etc/ssh/ssh_config',
-  line    => 'PasswordAuthentication no',
+exec { 'Declare identity file':
+  command => 'bash -c "echo IdentityFile \'~/.ssh/school\' >> /etc/ssh/ssh_config"',
+  path    => '/usr/bin:/usr/sbin:/bin'
+}
+exec { 'Turn on pubkey auth':
+  command => 'bash -c "echo PubkeyAuthentication yes >> /etc/ssh/ssh_config"',
+  path    => '/usr/bin:/usr/sbin:/bin'
 }
