@@ -1,30 +1,23 @@
-# Script that installs and configures Nginx
-exec {'update':
-  provider => shell,
-  path     => '/usr/bin:/usr/sbin:/bin',
-  command  => 'sudo apt-get -y update',
+# Install and configure nginx
+package { 'jfryman-nginx':
+  ensure => installed,
 }
 
-exec {'install':
-  provider => shell,
-  path     => '/usr/bin:/usr/sbin:/bin',
-  command  => 'sudo apt-get -y install nginx',
+include nginx
+
+class { 'nginx':
+  manage_repo    => true,
+  package_source => 'nginx-stable',
 }
 
-exec {'echo_html':
-  provider => shell,
-  path     => '/usr/bin:/usr/sbin:/bin',
-  command  => 'sudo echo "Holberton School" | sudo tee /var/www/html/index.nginx-debian.html',
+nginx::resource::server { '34.73.76.135':
+  listen_port      => 80,
+  www_root         => '/var/www/html/',
+  vhost_cfg_append => { 'rewrite' => '^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent' },
 }
 
-exec {'sed_config':
-  command  => 'sudo sed -i "/server_name _;/ a\\\trewrite ^/redirect_me http://www.youtube.com permanent;" /etc/nginx/sites-available/default',
-  provider => shell,
-  path     => '/usr/bin:/usr/sbin:/bin',
+file { 'index':
+  path    => '/var/www/html/index.nginx-debian.html',
+  content => 'Holberton School for the win!',
 }
-
-exec {'start':
-  command  => 'sudo service nginx start',
-  provider => shell,
-  path     => '/usr/bin:/usr/sbin:/bin',
 }
