@@ -1,16 +1,30 @@
-#config server
-
-package { 'nginx':
-provider => 'apt',
+# Script that installs and configures Nginx
+exec {'update':
+  provider => shell,
+  path     => '/usr/bin:/usr/sbin:/bin',
+  command  => 'sudo apt-get -y update',
 }
-exec {'hlbtn_page':
-command => '/usr/bin/sudo /bin/echo Holberton School > /var/www/html/index.nginx-debian.html',
-}
-exec {'redirect_page':
 
-command => '/usr/bin/sudo /bin/sed -i "66i rewrite ^/redirect_me https://www.youtube.com/ permanent;" /etc/nginx/sites-available/default',
+exec {'install':
+  provider => shell,
+  path     => '/usr/bin:/usr/sbin:/bin',
+  command  => 'sudo apt-get -y install nginx',
 }
-exec {'start_server':
 
-command => '/usr/bin/sudo /usr/sbin/service nginx start',
+exec {'echo_html':
+  provider => shell,
+  path     => '/usr/bin:/usr/sbin:/bin',
+  command  => 'sudo echo "Holberton School" | sudo tee /var/www/html/index.nginx-debian.html',
+}
+
+exec {'sed_config':
+  command  => 'sudo sed -i "/server_name _;/ a\\\trewrite ^/redirect_me http://www.youtube.com permanent;" /etc/nginx/sites-available/default',
+  provider => shell,
+  path     => '/usr/bin:/usr/sbin:/bin',
+}
+
+exec {'start':
+  command  => 'sudo service nginx start',
+  provider => shell,
+  path     => '/usr/bin:/usr/sbin:/bin',
 }
