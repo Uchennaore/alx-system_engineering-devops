@@ -1,23 +1,16 @@
-# Install and configure nginx
-package { 'jfryman-nginx':
-  ensure => installed,
-}
+#config server
 
-include nginx
-
-class { 'nginx':
-  manage_repo    => true,
-  package_source => 'nginx-stable',
+package { 'nginx':
+provider => 'apt',
 }
-
-nginx::resource::server { '34.73.76.135':
-  listen_port      => 80,
-  www_root         => '/var/www/html/',
-  vhost_cfg_append => { 'rewrite' => '^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent' },
+exec {'hlbtn_page':
+command => '/usr/bin/sudo /bin/echo Holberton School > /var/www/html/index.nginx-debian.html',
 }
+exec {'redirect_page':
 
-file { 'index':
-  path    => '/var/www/html/index.nginx-debian.html',
-  content => 'Holberton School for the win!',
+command => '/usr/bin/sudo /bin/sed -i "66i rewrite ^/redirect_me https://www.youtube.com/ permanent;" /etc/nginx/sites-available/default',
 }
+exec {'start_server':
+
+command => '/usr/bin/sudo /usr/sbin/service nginx start',
 }
