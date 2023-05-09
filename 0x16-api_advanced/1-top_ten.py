@@ -1,26 +1,43 @@
 #!/usr/bin/python3
+"""Queries the Reddit API and
+prints the titles of the first
+10 hot posts listed for a given
+subreddit.
+"""
 import requests
 
 
 def top_ten(subreddit):
-    """ queries Reddit API and prints the titles of
-    first 10 hot posts listed for a given subreddit.
-
-    If not a valid subreddit, print None.
-    Ensure that you are not following redirects.
+    """Prints the titles of the first
+    10 hot posts listed for a given
+    subreddit.
     """
-    url_base = 'http://www.reddit.com/r/'
-    url_query = '{:s}/hot.json?limit={:d}'.format(subreddit, 10)
-    headers = {'user-agent': 'egsyquest'}
-    r = requests.get(url_base + url_query, headers=headers)
+    # Set the Default URL strings
+    base_url = 'https://www.reddit.com'
+    api_uri = '{base}/r/{subreddit}/hot.json'.format(base=base_url,
+                                                     subreddit=subreddit)
 
-    if (r.status_code is 302):
-        print("None")
-        return
-    if (r.status_code is 404):
-        print("None")
-        return
+    # Set an User-Agent
+    user_agent = {'User-Agent': 'Python/requests'}
+
+    # Set the Query Strings to Request
+    payload = {'limit': '10'}
+
+    # Get the Response of the Reddit API
+    res = requests.get(api_uri, headers=user_agent,
+                       params=payload, allow_redirects=False)
+
+    # Checks if the subreddit is invalid
+    if res.status_code in [302, 404]:
+        print('None')
     else:
-        r = r.json()
-        for post in r['data']['children']:
-            print(post['data']['title'])
+        res_json = res.json()
+
+        if res_json.get('data') and res_json.get('data').get('children'):
+            # Get the 10 hot posts of the subreddit
+            hot_posts = res_json.get('data').get('children')
+
+            # Print each hot post title
+            for post in hot_posts:
+                if post.get('data') and post.get('data').get('title'):
+                    print(post.get('data').get('title'))
