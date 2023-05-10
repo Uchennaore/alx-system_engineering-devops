@@ -1,68 +1,63 @@
 #!/usr/bin/python3
-
-"""
-importing requests module
-"""
-
+""" Module for storing the count_words function. """
 from requests import get
 
 
-def count_words(subreddit, word_list=[], after=None, cleaned_dict=None):
+def count_words(subreddit, word_list, word_count=[], page_after=None):
     """
-    function that queries the Reddit API, parses the title of all hot articles,
-    and prints a sorted count of given keywords (case-insensitive, delimited by
-    spaces. Javascript should count as javascript, but java should not).
+    Prints the count of the given words present in the title of the
+    subreddit's hottest articles.
     """
+    headers = {'User-Agent': 'HolbertonSchool'}
 
-    temp = []
+    word_list = [word.lower() for word in word_list]
 
-    for i in word_list:
-        temp.append(i.casefold())
+    if bool(word_count) is False:
+        for word in word_list:
+            word_count.append(0)
 
-    cleaned_word_list = list(dict.fromkeys(temp))
+    if page_after is None:
+        url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
+        r = get(url, headers=headers, allow_redirects=False)
+        if r.status_code == 200:
+            for child in r.json()['data']['children']:
+                i = 0
+                for i in range(len(word_list)):
+                    for word in [w for w in child['data']['title'].split()]:
+                        word = word.lower()
+                        if word_list[i] == word:
+                            word_count[i] += 1
+                    i += 1
 
-    if cleaned_dict is None:
-        cleaned_dict = dict.fromkeys(cleaned_word_list)
+            if r.json()['data']['after'] is not None:
+                count_words(subreddit, word_list,
+                            word_count, r.json()['data']['after'])
+    else:
+        url = ('https://www.reddit.com/r/{}/hot.json?after={}'
+               .format(subreddit,
+                       page_after))
+        r = get(url, headers=headers, allow_redirects=False)
 
-    params = {'show': 'all'}
+        if r.status_code == 200:
+            for child in r.json()['data']['children']:
+                i = 0
+                for i in range(len(word_list)):
+                    for word in [w for w in child['data']['title'].split()]:
+                        word = word.lower()
+                        if word_list[i] == word:
+                            word_count[i] += 1
+                    i += 1
+            if r.json()['data']['after'] is not None:
+                count_words(subreddit, word_list,
+                            word_count, r.json()['data']['after'])
+            else:
+                dicto = {}
+                for key_word in list(set(word_list)):
+                    i = word_list.index(key_word)
+                    if word_count[i] != 0:
+                        dicto[word_list[i]] = (word_count[i] *
+                                               word_list.count(word_list[i]))
 
-    if subreddit is None or not isinstance(subreddit, str):
-        return None
-
-    user_agent = {'User-agent': 'Google Chrome Version 81.0.4044.129'}
-
-    url = 'https://www.reddit.com/r/{}/hot/.json?after={}'.format(subreddit,
-                                                                  after)
-
-    response = get(url, headers=user_agent, params=params)
-
-    if (response.status_code != 200):
-        return None
-
-    all_data = response.json()
-    raw1 = all_data.get('data').get('children')
-    after = all_data.get('data').get('after')
-
-    if after is None:
-        new = {k: v for k, v in cleaned_dict.items() if v is not None}
-
-        for k in sorted(new.items(), key=lambda x: (-x[1], x[0])):
-            print("{}: {}".format(k[0], k[1]))
-
-        return None
-
-    for i in raw1:
-        title = i.get('data').get('title')
-
-        split_title = title.split()
-
-        split_title2 = [i.casefold() for i in split_title]
-
-        for j in split_title2:
-            if j in cleaned_dict and cleaned_dict[j] is None:
-                cleaned_dict[j] = 1
-
-            elif j in cleaned_dict and cleaned_dict[j] is not None:
-                cleaned_dict[j] += 1
-
-    count_words(subreddit, word_list, after, cleaned_dict)
+                for key, value in sorted(dicto.items(),
+                                         key=lambda x: (-x[1], x[0])):
+                    print('{}: {}'.format(key, value))
