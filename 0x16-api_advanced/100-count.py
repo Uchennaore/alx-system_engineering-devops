@@ -1,55 +1,47 @@
 #!/usr/bin/python3
-"""
-parses the title of all hot articles, and prints a sorted count of given
-keywords (case-insensitive, delimited by spaces)
-"""
-from collections import OrderedDict
-from requests import get
+'''Get ALL hot posts'''
+import pprint
+import re
+import requests
+
+BASE_URL = 'http://reddit.com/r/{}/hot.json'
 
 
-def count_words(subreddit, word_list, after=None, match_dict={}):
-    """parses the title of all hot articles, and prints a sorted count of given
-    keywords (case-insensitive, delimited by spaces)
-    Args:
-        subreddit (str): subreddit
-        word_list (list): list of words to count occurrences for
-        after (str): refer to next page
-        match_dict (dict): dictionary of frequency of words from word_list
-        flag (int): indicate when match_dict is complete
-    """
-    try:
-        r = get('https://www.reddit.com/r/{}/hot.json?limit=100&&'
-                'after={}'.format(subreddit, after),
-                headers={'User-Agent': 'bc'})
-        sub_dict = r.json()
-
-        if match_dict == {}:
-            for w in word_list:
-                match_dict[w] = 0
-
-        after = sub_dict['data']['after']
-
-        for i in range(len(sub_dict['data']['children'])):
-            title_string = sub_dict['data']['children'][i]['data']['title']
-            search_list = title_string.split()
-            for word in search_list:
-                for w in word_list:
-                    if w.lower() == word.lower():
-                        match_dict[w] += 1
-
-        if after is None:
-            descend_dict = OrderedDict(sorted(match_dict.items(),
-                                              key=lambda x: x[1],
-                                              reverse=True))
-            zero_count = 0
-            for k, v in descend_dict.items():
-                if v != 0:
-                    print("{}: {}".format(k, v))
-                else:
-                    zero_count += 1
-            if zero_count == len(descend_dict):
-                print()
+def count_words(subreddit, word_list, hot_list=[], after=None):
+    '''Get ALL hot posts'''
+    headers = {'User-agent': 'Unix:0-subs:v1'}
+    params = {'limit': 100}
+    if isinstance(after, str):
+        if after != "STOP":
+            params['after'] = after
         else:
-            count_words(subreddit, word_list, after, match_dict)
-    except:
-        pass
+            return print_results(word_list, hot_list)
+
+    response = requests.get(BASE_URL.format(subreddit),
+                            headers=headers, params=params)
+    if response.status_code != 200:
+        return None
+    data = response.json().get('data', {})
+    after = data.get('after', 'STOP')
+    if not after:
+        after = "STOP"
+    hot_list = hot_list + [post.get('data', {}).get('title')
+                           for post in data.get('children', [])]
+    return count_words(subreddit, word_list, hot_list, after)
+
+
+def print_results(word_list, hot_list):
+    '''Prints request results'''
+    count = {}
+    for word in word_list:
+        count[word] = 0
+    for title in hot_list:
+        for word in word_list:
+            count[word] = count[word] +\
+             len(re.findall(r'(?:^| ){}(?:$| )'.format(word), title, re.I))
+
+    count = {k: v for k, v in count.items() if v > 0}
+    words = sorted(list(count.keys()))
+    for word in sorted(words,
+                       reverse=True, key=lambda k: count[k]):
+        print("{}: {}".format(word, count[word]))
