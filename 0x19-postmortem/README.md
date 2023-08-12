@@ -45,6 +45,6 @@ Corrective and Preventative Measures
 • Add a faster rollback mechanism and improve the traffic ramp-up process, so any future problems of this type can be corrected quickly.
 • Develop a better mechanism for quickly delivering status notifications during incidents.
 
-
+![Alt thank you](https://www.shutterstock.com/image-vector/thank-you-hand-drawn-lettering-260nw-780491263.jpg)
 
 
