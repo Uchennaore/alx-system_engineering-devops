@@ -30,7 +30,7 @@ At 10:30 AM WAT, the monitoring systems alerted our engineers who investigated a
 At 11:15 AM, an attempt to roll back the problematic configuration change was made. This rollback failed due to complexity in the configuration system which caused our security checks to reject the rollback. These problems were addressed and were successfully rolled back at 12:10  PM.
 Users stated ginning access to the site, and we determined that the overall recovery would be faster by a restart. To help with the recovery, we turned off some of our monitoring systems which were triggering the bug. As a result, we decided to restart servers gradually (at 12:12  PM), to avoid possible cascading failures from a wide-scale restart. 12:50 the site was 100% back online.
 
-Corrective and Preventative Measures
+## Corrective and Preventative Measures
 
 
 
